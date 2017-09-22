@@ -14,17 +14,39 @@
 #include <cstddef>
 #include <algorithm>
 
+//**************************************************//
+// class KSArray - Class definition
+//**************************************************//
+
+// class KSArray
+// pointer to start of array, size of array
+// Invariants:
+//		_arraypte points to array of int allocated with new[], owned by *this
+//		_size >= 0
+		
+// Requirements on Types:
+//		ValueType must be move-constructible and move-assignable
+//		ValueType must have binary operators
 template <typename ValueType>
 class KSArray {
-public:
 
+//**************************************************//
+// KSArray: Types
+//**************************************************//
+public:
+	// size_type: unsigned type for size of array
+	// value_type: type of item in this container
 	using size_type = std::size_t;
 	using value_type = ValueType;
+
+//**************************************************//
+// KSArray: Ctors, dtor, op=
+//**************************************************//
 public:
 
 	// Default ctor
 	// Pre: None
-	// Post: _ptr has size 10
+	// Post: _arrayptr points to array of size 10
 	KSArray() 
 		:_arrayptr(new value_type[10]), _size(10)
 	{}
@@ -46,7 +68,8 @@ public:
 
 	// 2 parameter ctor
 	// Pre: size >= 0
-	// Post: _size set to passed value, points to array of size
+	// Post: _size set to passed value, _arrayptr points to
+	//			array of that size
 	KSArray(size_type size, value_type value) 
 		:_arrayptr(new value_type[size], _size(size))
 	{
@@ -54,57 +77,61 @@ public:
 	}
 
 	// Copy ctor
-	// Pre:: None
-	// Post: Array elements are copied
+	// Pre: None
+	// Post: _size is set to other array, _arrayptr points to
+	//			new array of size _size, contents copied
 	KSArray(const KSArray & other) 
 		:_arrayptr(new value_type[other._size]), _size(other._size)
 	{
 		std::copy(other.begin(), other.end(), begin());
 	}
 
-	// More ctor
+	// Copy assignment 
 	// Pre: None
-	// Post: 
-	KSArray(KSArray && other) noexcept 
+	// Post: _size is set to other array, _arrayptr points to
+	//			new array of size _size, contents copied
+	KSArray & operator=(const KSArray & other)
+	{
+		KSArray copy(other);
+		std::swap(_arrayptr, copy._arrayptr);
+		std::swap(_size, copy._size);
+		return *this;
+	}	
+	
+	// Move ctor
+	// Pre: None
+	// Post: _size is set to size rvalue array, _arrayptr
+	//			points to value of array
+	KSArray(KSArray && other) noexcept
 		:_arrayptr(other._arrayptr), _size(other._size)
 	{
 		other._arrayptr = new value_type[0];
 		other._size = 0;
 	}
 
-	// Copy assignment 
-	// Pre: None
-	// Post: Array elements are copied
-	KSArray & operator=(const KSArray & other)
-	{
-		KSArray copy(other);
-		swapping(copy);
-		return *this;
-	}
-
 	// Move assignment
 	// Pre: None
-	// Post: Sets value to size of other, points to what was array
+	// Post: _size is set to size rvalue array, _arrayptr
+	//			points to value of array
 	KSArray & operator=(KSArray && other) noexcept
-	{
-		swapping(other);
-		return *this;
-	}
-private:
-	void swapping(KSArray & other) noexcept
 	{
 		std::swap(_arrayptr, other._arrayptr);
 		std::swap(_size, other._size);
+		return *this;
 	}
 
 //**************************************************//
 // General Public Operators
+//**************************************************//
 public:
+
+	// op[] - const & non-const
+	// Pre: 0 <= index (size of allocated array)
+	// Post: Return is reference to item index of allocated array
 	const value_type & operator[](size_type index) const
 	{
 		return _arrayptr[index];
 	}
-
 	value_type & operator[](size_type index)
 	{
 		return _arrayptr[index];
@@ -112,6 +139,7 @@ public:
 
 //**************************************************//
 // General Public Member Functions
+//**************************************************//
 public:
 	
 	// size
@@ -147,15 +175,16 @@ public:
 		return _arrayptr + _size;
 	}
 
-
 private:
-	// Pointer to dynamic array
+	// _arrayptr: Pointer to dynamic array
+	// _size: Size of dynamic array
 	value_type * _arrayptr;
 	size_type _size;
-};
+}; // End class KSArray
 
 //**************************************************//
 // Global Operators 
+//**************************************************//
 
 // op==(Arr, Arr)
 // Pre: None
@@ -232,4 +261,4 @@ bool operator>=(const KSArray<ValueType> & a, const KSArray<ValueType> & b)
 	return !(a < b);
 }
 
-#endif
+#endif //#ifndef FILE_MSARRAY_H_INCLUDED
